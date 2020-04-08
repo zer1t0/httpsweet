@@ -214,21 +214,53 @@ class Parameters:
     def __init__(
             self,
             action=None,
-            filename=None,
+            path=None,
             offset=None,
             size=None,
             encoding=None,
             append=None,
+            data=None
     ):
         self.action = action
-        self.filename = filename
+        self.path = path
         self.offset = offset
         self.size = size
         self.encoding = encoding
         self.append = append
+        self.data = data
 
     def update(self, other):
-        self.__dict__.update(other.__dict__)
+        for key, value in other.__dict__.items():
+            if value is not None:
+                self.__dict__[key] = value
+
+    @classmethod
+    def from_method(cls, method):
+        if method == "POST":
+            return cls(action="upload_file")
+        else:
+            return cls(action="download_file")
+
+    @classmethod
+    def from_path(cls, path):
+        return cls(path=path)
+
+    @classmethod
+    def from_query_string(cls, qs):
+        append = "append" in qs
+        return cls(
+            action=qs.get("action", None),
+            path=qs.get("path", None),
+            offset=qs.get("offset", None),
+            size=qs.get("size", None),
+            encoding=qs.get("encoding", None),
+            append=append,
+            data=qs.get("data", None)
+        )
+
+    @classmethod
+    def from_raw_data(cls, raw_data):
+        return cls(data=raw_data)
 
 
 class EncoderFactory(object):
