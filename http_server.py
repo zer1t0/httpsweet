@@ -5,6 +5,9 @@ import base64
 import logging
 import argparse
 import os
+from abc import ABC, abstractmethod
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_PORT = 8000
 DEFAULT_ADDRESS = "0.0.0.0"
@@ -69,7 +72,62 @@ class CustomHttpRequestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         logging.debug("GET")
-        self._handle_get(Url(self.path))
+        self._handle_request()
+
+    def do_POST(self):
+        logging.debug("POST")
+        self._handle_request()
+
+    def _handle_request(self):
+        request_info = RequestInfo(
+            method=self.command,
+            url=self.path
+        )
+
+    def execute_action(self, parameters):
+        if parameters.action == "download_file":
+            self.download_file(
+                parameters.path,
+                parameters.offset,
+                parameters.size,
+                EncoderFactory.create(parameters.encoding)
+            )
+        elif parameters.action == "upload_file":
+            self.upload_file(
+                parameters.path,
+                parameters.data,
+                parameters.append,
+                EncoderFactory.create(parameters.encoding)
+            )
+
+    def download_file(self, path, offset, size, encoder):
+        try:
+            self.wfile.write(self.read_file(path, offset, size, encoder))
+            self.send_response(200)
+            self.send_header("Content-type", "application/octet-stream")
+            self.end_headers()
+        except FileNotFoundError as ex:
+            logger.debug("File not found: %s", ex)
+            self.send_error(404)
+
+    def upload_file(self, path, data, append, encoder):
+        try:
+            self.write_file(path, data, append, encoder)
+            self.send_response(200)
+            self.end_headers()
+        except FileNotFoundError as ex:
+            logger.debug("File not found: %s", ex)
+            self.send_error(404)
+
+    def read_file(self, path, offset, size, encoder):
+        with open(path, "rb") as f:
+            f.seek(offset)
+            return encoder.encode(f.read(size))
+
+    def write_file(self, path, data, append, encoder):
+        mode = "ab" if append else "wb"
+        with open(path, mode) as f:
+            f.write(encoder.decode(data))
 
     def _handle_get(self, url):
         path = url.path[1:]
@@ -84,10 +142,6 @@ class CustomHttpRequestHandler(BaseHTTPRequestHandler):
             f.close()
         except IOError:
             self.send_error(404)
-
-    def do_POST(self):
-        logging.debug("POST")
-        self._handle_post(Url(self.path))
 
     def _handle_post(self, url):
 
@@ -126,10 +180,18 @@ class CustomHttpRequestHandler(BaseHTTPRequestHandler):
             f.write(data)
 
 
+class RequestInfo(object):
+
+    def __init__(self, method, url):
+        self.method = method
+        self.url = Url(url)
+
+
 class Url:
 
     def __init__(self, url_str):
         self._url = urlparse(url_str)
+        self._parameters = parse_qs(self._url)
 
     @property
     def action(self):
@@ -167,6 +229,45 @@ class Parameters:
 
     def update(self, other):
         self.__dict__.update(other.__dict__)
+
+
+class EncoderFactory(object):
+
+    @classmethod
+    def create(cls, encoding):
+        if encoding == "64":
+            return Base64Encoder()
+        else:
+            return EmptyEncoder()
+
+
+class Encoder(ABC):
+
+    @abstractmethod
+    def encode(self, data):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def decode(self, data):
+        raise NotImplementedError()
+
+
+class EmptyEncoder(Encoder):
+
+    def encode(self, data):
+        return data
+
+    def decode(self, data):
+        return data
+
+
+class Base64Encoder(Encoder):
+
+    def encode(self, data):
+        return base64.b64encode(data)
+
+    def decode(self, data):
+        return base64.b64decode(data)
 
 
 if __name__ == '__main__':
