@@ -137,8 +137,7 @@ class CustomHttpRequestHandler(SimpleHTTPRequestHandler):
         if content_length > 0:
             content = request_info.rfile.read(content_length)
             if request_info.content_type == ContentType.URLENCODED:
-                print("AAAAAAAAAAa")
-                builder.update_from_query_string((parse_qs(content)))
+                builder.update_from_query_string_bytes(parse_qs(content))
             elif request_info.content_type == ContentType.JSON:
                 builder.update_from_dictionary(json.loads(content))
             else:
@@ -355,7 +354,30 @@ class ParametersBuilder(object):
         for member in QueryStringKeys:
             key = member.value
             if key in qs:
-                d[key] = qs[key][0]
+                if key == QueryStringKeys.data.value:
+                    d[key] = qs[key][0].decode()
+                else:
+                    d[key] = qs[key][0]
+            else:
+                d[key] = None
+
+        return cls.from_dictionary(d)
+
+    def update_from_query_string_bytes(self, qs):
+        other = self.from_query_string_bytes(qs)
+        self.update(other)
+
+    @classmethod
+    def from_query_string_bytes(cls, qs):
+        d = {}
+        for member in QueryStringKeys:
+            key = member.value
+            key_bytes = key.encode()
+            if key_bytes in qs:
+                if key == QueryStringKeys.data.value:
+                    d[key] = qs[key_bytes][0]
+                else:
+                    d[key] = qs[key_bytes][0].decode()
             else:
                 d[key] = None
 
