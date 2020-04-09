@@ -20,10 +20,10 @@ curl 127.0.0.1:8000/ -X POST -d 'action=download_file&offset=10&size=20&path=tes
 
 ### Upload file
 
-Upload a file:
+Upload a file named `test_up`:
 ```
-curl 127.0.0.1:8000/test -X POST --data 'thedata' -H 'Content-type: application/octet-stream'
-curl 127.0.0.1:8000/test?action=upload_file&data=thedata
+curl 127.0.0.1:8000/test_up -X POST --data 'thedata' -H 'Content-type: application/octet-stream'
+curl '127.0.0.1:8000/test_up?action=upload_file&data=thedata'
 ```
 
 Upload base64 encoded:
