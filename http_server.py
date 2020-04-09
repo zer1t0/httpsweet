@@ -355,7 +355,7 @@ class ParametersBuilder(object):
             key = member.value
             if key in qs:
                 if key == QueryStringKeys.data.value:
-                    d[key] = qs[key][0].decode()
+                    d[key] = qs[key][0].encode()
                 else:
                     d[key] = qs[key][0]
 
