@@ -96,11 +96,18 @@ class CustomHttpRequestHandler(SimpleHTTPRequestHandler):
         self._handle_request()
 
     def do_PUT(self):
-        logging.debug("PUT")
+        logging.debug("%s PUT")
         self._handle_request()
 
     def _handle_request(self):
-        request_info = self.parse_request()
+        logger.debug(
+            '%s -- [%s] "%s"\n',
+            self.address_string(),
+            self.log_date_time_string(),
+            self.requestline
+        )
+        request_info = self.parse_request_info()
+        print(request_info)
         parameters = self.parse_parameters(request_info)
 
         try:
@@ -112,7 +119,7 @@ class CustomHttpRequestHandler(SimpleHTTPRequestHandler):
             logger.debug("Directory requested: %s", ex)
             self.send_error(404)
 
-    def parse_request(self):
+    def parse_request_info(self):
         return RequestInfo(
             method=self.command,
             url=self.path,
