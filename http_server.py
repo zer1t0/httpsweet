@@ -107,7 +107,6 @@ class CustomHttpRequestHandler(SimpleHTTPRequestHandler):
             self.requestline
         )
         request_info = self.parse_request_info()
-        print(request_info)
         parameters = self.parse_parameters(request_info)
 
         try:
@@ -129,7 +128,7 @@ class CustomHttpRequestHandler(SimpleHTTPRequestHandler):
 
     def parse_parameters(self, request_info):
         parameters = Parameters.from_method(request_info.method)
-        parameters.update(Parameters.from_path(request_info.url.path))
+        parameters.update(Parameters.from_path(request_info.path))
         parameters.update(
             Parameters.from_dictionary(request_info.url.query_string)
         )
@@ -239,12 +238,16 @@ class RequestInfo(object):
     def content_length(self):
         return int(self.headers.get("Conten-Length", "0"))
 
+    @property
+    def path(self):
+        return self.url.path
+
 
 class Url:
 
     def __init__(self, url_str):
         self._url = urlparse(url_str)
-        self._parameters = parse_qs(self._url)
+        self._parameters = parse_qs(self._url.query)
 
     @property
     def action(self):
