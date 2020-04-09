@@ -127,28 +127,22 @@ class CustomHttpRequestHandler(SimpleHTTPRequestHandler):
         )
 
     def parse_parameters(self, request_info):
-        parameters = Parameters.from_method(request_info.method)
-        parameters.update(Parameters.from_path(request_info.path))
-        parameters.update(
-            Parameters.from_dictionary(request_info.url.query_string)
-        )
+        builder = ParametersBuilder()
+        builder.update_from_method(request_info.method)
+        builder.update_from_path(request_info.path)
+        builder.update_from_dictionary(request_info.url.query_string)
 
         content_length = request_info.content_length
         if content_length > 0:
             content = request_info.rfile.read(content_length)
             if request_info.content_type == ContentType.URLENCODED:
-                content_params = Parameters.from_dictionary(
-                    parse_qs(content)
-                )
+                builder.update_from_dictionary(parse_qs(content))
             elif request_info.content_type == ContentType.JSON:
-                content_params = Parameters.from_dictionary(
-                    json.loads(content)
-                )
+                builder.update_from_dictionary(json.loads(content))
             else:
-                content_params = Parameters.from_raw_data(content)
+                builder.update_from_raw_data(content)
 
-            parameters.update(content_params)
-
+        parameters = builder.build()
         parameters.path = self.translate_path(parameters.path)
 
         return parameters
@@ -159,21 +153,22 @@ class CustomHttpRequestHandler(SimpleHTTPRequestHandler):
                 parameters.path,
                 parameters.offset,
                 parameters.size,
-                EncoderFactory.create(parameters.encoding)
+                parameters.encoder
             )
         elif parameters.action == Actions.UPLOAD_FILE:
             self.upload_file(
                 parameters.path,
                 parameters.data,
                 parameters.append,
-                EncoderFactory.create(parameters.encoding)
+                parameters.encoder
             )
 
     def download_file(self, path, offset, size, encoder):
-        self.wfile.write(self.read_file(path, offset, size, encoder))
+        data = self.read_file(path, offset, size, encoder)
         self.send_response(200)
         self.send_header("Content-type", ContentType.OCTET_STREAM)
         self.end_headers()
+        self.wfile.write(data)
 
     def upload_file(self, path, data, append, encoder):
         self.write_file_and_dirs(path, data, append, encoder)
@@ -274,7 +269,7 @@ class Actions:
     UPLOAD_FILE = "upload_file"
 
 
-class Parameters:
+class ParametersBuilder:
 
     def __init__(
             self,
@@ -294,14 +289,35 @@ class Parameters:
         self.append = append
         self.data = data
 
-    @property
-    def is_dir(self):
-        return os.path.isdir(self.path)
+    def build(self):
+        if self.offset is None:
+            offset = 0
+        else:
+            offset = int(self.offset)
 
-    def update(self, other):
-        for key, value in other.__dict__.items():
-            if value is not None:
-                self.__dict__[key] = value
+        if self.size is not None:
+            size = int(self.size)
+        else:
+            size = self.size
+
+        if self.data is None:
+            data = b""
+        else:
+            data = self.data
+
+        return Parameters(
+            action=self.action,
+            path=self.path,
+            offset=offset,
+            size=size,
+            encoder=EncoderFactory.create(self.encoding),
+            append=bool(self.append),
+            data=data
+        )
+
+    def update_from_method(self, method):
+        other = self.from_method(method)
+        self.update(other)
 
     @classmethod
     def from_method(cls, method):
@@ -310,9 +326,17 @@ class Parameters:
         else:
             return cls(action=Actions.DOWNLOAD_FILE)
 
+    def update_from_path(self, path):
+        other = self.from_path(path)
+        self.update(other)
+
     @classmethod
     def from_path(cls, path):
         return cls(path=path)
+
+    def update_from_dictionary(self, d):
+        other = self.from_dictionary(d)
+        self.update(other)
 
     @classmethod
     def from_dictionary(cls, qs):
@@ -327,9 +351,39 @@ class Parameters:
             data=qs.get("data", None)
         )
 
+    def update_from_raw_data(self, raw_data):
+        other = self.from_raw_data(raw_data)
+        self.update(other)
+
     @classmethod
     def from_raw_data(cls, raw_data):
         return cls(data=raw_data)
+
+    def update(self, other):
+        for key, value in other.__dict__.items():
+            if value is not None:
+                self.__dict__[key] = value
+
+
+class Parameters:
+
+    def __init__(
+            self,
+            action,
+            path,
+            offset,
+            size,
+            encoder,
+            append,
+            data
+    ):
+        self.action = action
+        self.path = path
+        self.offset = offset
+        self.size = size
+        self.encoder = encoder
+        self.append = append
+        self.data = data
 
 
 class EncoderFactory(object):
