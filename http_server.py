@@ -358,8 +358,6 @@ class ParametersBuilder(object):
                     d[key] = qs[key][0].decode()
                 else:
                     d[key] = qs[key][0]
-            else:
-                d[key] = None
 
         return cls.from_dictionary(d)
 
@@ -378,8 +376,6 @@ class ParametersBuilder(object):
                     d[key] = qs[key_bytes][0]
                 else:
                     d[key] = qs[key_bytes][0].decode()
-            else:
-                d[key] = None
 
         return cls.from_dictionary(d)
 
