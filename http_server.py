@@ -8,6 +8,7 @@ import os
 import json
 from abc import ABC, abstractmethod
 from functools import partial
+from enum import Enum
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +102,7 @@ class CustomHttpRequestHandler(SimpleHTTPRequestHandler):
 
     def _handle_request(self):
         logger.debug(
-            '%s -- [%s] "%s"\n',
+            '%s -- [%s] "%s"',
             self.address_string(),
             self.log_date_time_string(),
             self.requestline
@@ -130,13 +131,13 @@ class CustomHttpRequestHandler(SimpleHTTPRequestHandler):
         builder = ParametersBuilder()
         builder.update_from_method(request_info.method)
         builder.update_from_path(request_info.path)
-        builder.update_from_dictionary(request_info.url.query_string)
+        builder.update_from_query_string(request_info.url.query_string)
 
         content_length = request_info.content_length
         if content_length > 0:
             content = request_info.rfile.read(content_length)
             if request_info.content_type == ContentType.URLENCODED:
-                builder.update_from_dictionary(parse_qs(content))
+                builder.update_from_query_string((parse_qs(content)))
             elif request_info.content_type == ContentType.JSON:
                 builder.update_from_dictionary(json.loads(content))
             else:
@@ -269,7 +270,17 @@ class Actions:
     UPLOAD_FILE = "upload_file"
 
 
-class ParametersBuilder:
+class QueryStringKeys(Enum):
+    action = "action"
+    path = "path"
+    offset = "offset"
+    size = "size"
+    encoding = "encoding"
+    append = "append"
+    data = "data"
+
+
+class ParametersBuilder(object):
 
     def __init__(
             self,
@@ -334,21 +345,37 @@ class ParametersBuilder:
     def from_path(cls, path):
         return cls(path=path)
 
+    def update_from_query_string(self, qs):
+        other = self.from_query_string(qs)
+        self.update(other)
+
+    @classmethod
+    def from_query_string(cls, qs):
+        d = {}
+        for member in QueryStringKeys:
+            key = member.value
+            if key in qs:
+                d[key] = qs[key][0]
+            else:
+                d[key] = None
+
+        return cls.from_dictionary(d)
+
     def update_from_dictionary(self, d):
         other = self.from_dictionary(d)
         self.update(other)
 
     @classmethod
-    def from_dictionary(cls, qs):
-        append = "append" in qs
+    def from_dictionary(cls, d):
+        append = "append" in d
         return cls(
-            action=qs.get("action", None),
-            path=qs.get("path", None),
-            offset=qs.get("offset", None),
-            size=qs.get("size", None),
-            encoding=qs.get("encoding", None),
+            action=d.get("action", None),
+            path=d.get("path", None),
+            offset=d.get("offset", None),
+            size=d.get("size", None),
+            encoding=d.get("encoding", None),
             append=append,
-            data=qs.get("data", None)
+            data=d.get("data", None)
         )
 
     def update_from_raw_data(self, raw_data):
