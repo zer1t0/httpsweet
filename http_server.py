@@ -470,7 +470,15 @@ class Base64Encoder(Encoder):
         return base64.b64encode(data)
 
     def decode(self, data):
+        data = self._normalize_url_data(data)
         return base64.b64decode(data)
+
+    def _normalize_url_data(self, data):
+        missing_padding = len(data) % 4
+        if missing_padding:
+            data += b'=' * (4 - missing_padding)
+
+        return data.replace(b"-", b"+").replace(b"/", b"-")
 
 
 def set_dict_keys_to_lower(d):

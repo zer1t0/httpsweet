@@ -26,15 +26,15 @@ curl 127.0.0.1:8000/test_up -X POST --data 'thedata' -H 'Content-type: applicati
 curl '127.0.0.1:8000/test_up?action=upload_file&data=thedata'
 ```
 
-Upload base64 encoded:
-```
-curl 127.0.0.1:8000/test?encoding=64 -X POST --data 'dGhlZGF0YQo=' -H 'Content-type: application/octet-stream'
-
-curl 127.0.0.1:8000/?action=upload_file&path=test&data=dGhlZGF0YQo&encoding=64
-```
-
 Upload a file appending:
 ```
 curl 127.0.0.1:8000/test_app?append=t -X POST --data 'thedata' -H 'Content-type: application/octet-stream'
 curl '127.0.0.1:8000/test_app?action=upload_file&data=thedata&append=t'
+```
+
+Upload base64 encoded:
+```
+curl 127.0.0.1:8000/test?encoding=64 -X POST --data 'dGhlZGF0YQo=' -H 'Content-type: application/octet-stream'
+
+curl '127.0.0.1:8000/?action=upload_file&path=test&data=dGhlZGF0YQo&encoding=64'
 ```
