@@ -137,6 +137,7 @@ class CustomHttpRequestHandler(SimpleHTTPRequestHandler):
         if content_length > 0:
             content = request_info.rfile.read(content_length)
             if request_info.content_type == ContentType.URLENCODED:
+                print("AAAAAAAAAAa")
                 builder.update_from_query_string((parse_qs(content)))
             elif request_info.content_type == ContentType.JSON:
                 builder.update_from_dictionary(json.loads(content))
@@ -149,6 +150,7 @@ class CustomHttpRequestHandler(SimpleHTTPRequestHandler):
         return parameters
 
     def execute_action(self, parameters):
+        print(repr(parameters))
         if parameters.action == Actions.DOWNLOAD_FILE:
             self.download_file(
                 parameters.path,
@@ -167,7 +169,7 @@ class CustomHttpRequestHandler(SimpleHTTPRequestHandler):
     def download_file(self, path, offset, size, encoder):
         data = self.read_file(path, offset, size, encoder)
         self.send_response(200)
-        self.send_header("Content-type", ContentType.OCTET_STREAM)
+        self.send_header(Headers.CONTENT_TYPE, ContentType.OCTET_STREAM)
         self.end_headers()
         self.wfile.write(data)
 
@@ -197,20 +199,6 @@ class CustomHttpRequestHandler(SimpleHTTPRequestHandler):
         with open(path, mode) as f:
             f.write(encoder.decode(data))
 
-    def _handle_get(self, url):
-        path = url.path[1:]
-        try:
-            f = open(path, "rb")
-
-            self.send_response(200)
-            self.send_header("Content-type", "application/octet-stream")
-            self.end_headers()
-            self.wfile.write(f.read())
-
-            f.close()
-        except IOError:
-            self.send_error(404)
-
 
 class ContentType:
     JSON = "application/json"
@@ -218,25 +206,37 @@ class ContentType:
     OCTET_STREAM = "application/octet-stream"
 
 
+class Headers:
+    CONTENT_TYPE = "Content-Type"
+    CONTENT_LENGTH = "Content-Length"
+
+
 class RequestInfo(object):
 
     def __init__(self, method, url, headers, rfile):
         self.method = method
         self.url = Url(url)
-        self.headers = headers
+        self.headers = self._generate_lower_keys(headers)
         self.rfile = rfile
 
     @property
     def content_type(self):
-        return self.headers.get("Content-type", "")
+        return self.headers.get(Headers.CONTENT_TYPE.lower(), "")
 
     @property
     def content_length(self):
-        return int(self.headers.get("Conten-Length", "0"))
+        return int(self.headers.get(Headers.CONTENT_LENGTH.lower(), "0"))
 
     @property
     def path(self):
         return self.url.path
+
+    @staticmethod
+    def _generate_lower_keys(d):
+        other_d = {}
+        for key, value in d.items():
+            other_d[key.lower()] = value
+        return other_d
 
 
 class Url:
@@ -412,6 +412,9 @@ class Parameters:
         self.append = append
         self.data = data
 
+    def __repr__(self):
+        return repr(self.__dict__)
+
 
 class EncoderFactory(object):
 
@@ -450,6 +453,11 @@ class Base64Encoder(Encoder):
 
     def decode(self, data):
         return base64.b64decode(data)
+
+
+def set_dict_keys_to_lower(d):
+    for key, value in d.items():
+        d[key.to_lower()] = value
 
 
 if __name__ == '__main__':
