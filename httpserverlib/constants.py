@@ -12,9 +12,17 @@ class Headers:
     CONTENT_LENGTH = "Content-Length"
 
 
-class Actions:
-    DOWNLOAD_FILE = "download_file"
-    UPLOAD_FILE = "upload_file"
+class Action:
+    DOWNLOAD = "d"
+    UPLOAD = "u"
+
+    @classmethod
+    def is_download(cls, action):
+        return action.startswith(cls.DOWNLOAD)
+
+    @classmethod
+    def is_upload(cls, action):
+        return action.startswith(cls.UPLOAD)
 
 
 class QueryStringKeys(Enum):

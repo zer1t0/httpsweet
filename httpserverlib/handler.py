@@ -2,7 +2,7 @@ import os
 from http.server import SimpleHTTPRequestHandler
 import logging
 
-from .constants import Headers, Actions, ContentType
+from .constants import Headers, Action, ContentType
 from .request import RequestInfo
 from .parameters import Parameters
 
@@ -70,9 +70,9 @@ class ActionHandler(object):
             self.execute_file_action()
 
     def execute_file_action(self):
-        if self.action == Actions.DOWNLOAD_FILE:
+        if Action.is_download(self.action):
             self.download_file()
-        elif self.action == Actions.UPLOAD_FILE:
+        elif Action.is_upload(self.action):
             self.upload_file()
 
     def download_file(self):
@@ -94,7 +94,7 @@ class ActionHandler(object):
 
     def execute_dir_action(self):
         if self.allow_dir_list and \
-           self.action == Actions.DOWNLOAD_FILE:
+           Action.is_download(self.action):
             directory_bytes = self.list_directory()
             self.write(directory_bytes)
         else:

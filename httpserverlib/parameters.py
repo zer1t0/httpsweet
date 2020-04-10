@@ -1,6 +1,6 @@
 import json
 from urllib.parse import parse_qs
-from .constants import Actions, ContentType, QueryStringKeys
+from .constants import Action, ContentType, QueryStringKeys
 from .encoder import EncoderFactory
 
 
@@ -88,9 +88,9 @@ class ParametersBuilder(object):
     @classmethod
     def from_method(cls, method):
         if method == "POST" or method == "PUT":
-            return cls(action=Actions.UPLOAD_FILE)
+            return cls(action=Action.UPLOAD)
         else:
-            return cls(action=Actions.DOWNLOAD_FILE)
+            return cls(action=Action.DOWNLOAD)
 
     def update_from_path(self, path):
         other = self.from_path(path)
