@@ -12,7 +12,12 @@ logger = logging.getLogger(__name__)
 class FileRequestHandler(SimpleHTTPRequestHandler):
     """Handles each incoming requests and parses its parameters"""
 
-    def __init__(self, *args, allow_dir_list=False, **kwargs):
+    def __init__(
+            self,
+            *args,
+            allow_dir_list=False,
+            **kwargs
+    ):
         self.allow_dir_list = allow_dir_list
         super().__init__(*args, **kwargs)
 

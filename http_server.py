@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_PORT = 8000
 DEFAULT_ADDRESS = "0.0.0.0"
 DEFAULT_DIR = os.getcwd()
+DEFAULT_SERVER_HEADER = "HTTPServer"
 
 
 def parse_args():
@@ -61,6 +62,16 @@ def parse_args():
     )
 
     parser.add_argument(
+        "--server",
+        help="String for the Server header. Default: {}".format(
+            DEFAULT_SERVER_HEADER
+        ),
+        required=False,
+        default=DEFAULT_SERVER_HEADER,
+        dest="server_header"
+    )
+
+    parser.add_argument(
         "--debug",
         required=False,
         action="store_true"
@@ -93,7 +104,8 @@ def main():
         address,
         port,
         args.directory,
-        args.dir_list
+        args.dir_list,
+        args.server_header
     )
 
     if args.cert:
