@@ -105,11 +105,12 @@ def main():
                 keyfile=args.key,
                 server_side=True,
             )
-        except ssl.SSLError:
-            print("SSL error, do you provide the key?")
+        except ssl.SSLError as ex:
+            print("SSL error: {}. "
+                  "Check if you provide the correct cert and key".format(ex))
             return
-        except OSError:
-            print("Wrong certificate password")
+        except OSError as ex:
+            print("Error: {}. Maybe certificate password is wrong.".format(ex))
             return
 
     print(
