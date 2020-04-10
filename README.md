@@ -1,5 +1,8 @@
 # http_server
 
+This is a HTTP server to allow easily download and upload files to it.
+
+It was created with flexibility in mind, allowing be used in many different situations, therefore in allows deploy the very same operation in many different ways. For more information see the (Rules section)[#rules].
 
 ## Examples
 
@@ -55,3 +58,35 @@ cat key.pem >> cert.pem # generate cert with the private key
 ## Directory listing
 
 By default, directory listing is disabled, in case you want to enable it, you must provide the flag `--dir-list`.
+
+
+## Rules
+
+The server perform 2 basic actions: Download and Upload file.
+
+In order to determine the action required in each request, the server examines the following parts of the request:
+
+- Method
+  + POST | PUT :: Upload
+  + Rest of methods :: Download
+- Url path :: Indicates the path of the desired file
+- Url parameters :: Indicates the action parameters
+- Body, which could be:
+  - Raw data :: Indicates the content of the file
+  - Url encoded parameters :: Indicates the action parameters
+  - Json data :: Indicates the action parameters
+
+
+In all those fields which can specified the action parameters, the following values can be provided:
+- action: str :: Determines the action
+- path: str :: Indicates the path of the desired file
+- offset: int :: (Download) Indicates the starting point for reading a file
+- size: int :: (Download) Indicates the number of bytes read
+- append: flag :: (Upload) Indicates if the data should be appended to the desired file
+- encoding: str :: Indicates the desired encoder use in the actions, actually only base64 is supported (or not encoder)
+- data: str :: (Upload) The data to write into the desired file
+
+
+The more relevant parts are those in last positions of the list. That means, for instance if the Url path indicates the path `index.html` but there is a parameter `path` (in the Url or in the Body) which indicates `other_file.txt`, then `other_file.txt` will be selected as the desired path.
+
+
