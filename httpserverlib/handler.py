@@ -38,6 +38,7 @@ class FileRequestHandler(SimpleHTTPRequestHandler):
         request_info = RequestInfo.from_request_handler(self)
         parameters = Parameters.from_request(request_info)
 
+        logger.debug("Received parameters: %s", repr(parameters))
         ActionHandler(
             path=self.translate_path(parameters.path),
             parameters=parameters,

@@ -1,8 +1,7 @@
 import json
 from urllib.parse import parse_qs
-from .constants import Action, ContentType, QueryStringKeys
+from .constants import Action, ContentType, ParameterKeys
 from .encoder import EncoderFactory
-from .utils import lower_dict_keys
 
 
 class ParametersBuilder(object):
@@ -53,6 +52,7 @@ class ParametersBuilder(object):
         else:
             data = self.data
 
+        print("Append = {}", self.append)
         return Parameters(
             action=self.action,
             path=self.path,
@@ -111,10 +111,10 @@ class ParametersBuilder(object):
     @classmethod
     def from_query_string(cls, qs):
         d = {}
-        for member in QueryStringKeys:
+        for member in ParameterKeys:
             key = member.value
             if key in qs:
-                if key == QueryStringKeys.data.value:
+                if key == ParameterKeys.data.value:
                     d[key] = qs[key][0].encode()
                 else:
                     d[key] = qs[key][0]
@@ -128,11 +128,11 @@ class ParametersBuilder(object):
     @classmethod
     def from_query_string_bytes(cls, qs):
         d = {}
-        for member in QueryStringKeys:
+        for member in ParameterKeys:
             key = member.value
             key_bytes = key.encode()
             if key_bytes in qs:
-                if key == QueryStringKeys.data.value:
+                if key == ParameterKeys.data.value:
                     d[key] = qs[key_bytes][0]
                 else:
                     d[key] = qs[key_bytes][0].decode()
@@ -145,16 +145,38 @@ class ParametersBuilder(object):
 
     @classmethod
     def from_dictionary(cls, d):
-        lower_d = lower_dict_keys(d)
-        append = "append" in lower_d
+        action = None
+        path = None
+        offset = None
+        size = None
+        encoding = None
+        append = None
+        data = None
+
+        for key, value in d.items():
+            if ParameterKeys.is_action_parameter(key):
+                action = value
+            elif ParameterKeys.is_path_parameter(key):
+                path = value
+            elif ParameterKeys.is_offset_parameter(key):
+                offset = value
+            elif ParameterKeys.is_size_parameter(key):
+                size = value
+            elif ParameterKeys.is_encoding_parameter(key):
+                encoding = value
+            elif ParameterKeys.is_append_parameter(key):
+                append = True
+            elif ParameterKeys.is_data_parameter(key):
+                data = value
+
         return cls(
-            action=lower_d.get("action", None),
-            path=lower_d.get("path", None),
-            offset=lower_d.get("offset", None),
-            size=lower_d.get("size", None),
-            encoding=lower_d.get("encoding", None),
+            action=action,
+            path=path,
+            offset=offset,
+            size=size,
+            encoding=encoding,
             append=append,
-            data=lower_d.get("data", None)
+            data=data
         )
 
     def update_from_raw_data(self, raw_data):

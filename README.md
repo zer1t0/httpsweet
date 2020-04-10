@@ -77,7 +77,7 @@ In order to determine the action required in each request, the server examines t
   - Url encoded parameters :: Indicates the action parameters
   - Json data :: Indicates the action parameters
 - Headers :: Indicates the action parameters
-- Cookies :: Indicates the action parameters. Since `path` key has a special meaning in cookies, it is not possible to use it in these fields.
+- Cookies :: Indicates the action parameters. Since `path` key has a special meaning in cookies, it is not possible to use that parameter in these fields.
 
 In all those fields which can specified the action parameters, the following values can be provided:
 - action: str :: Determines the action
