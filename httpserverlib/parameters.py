@@ -2,6 +2,7 @@ import json
 from urllib.parse import parse_qs
 from .constants import Action, ContentType, QueryStringKeys
 from .encoder import EncoderFactory
+from .utils import lower_dict_keys
 
 
 class ParametersBuilder(object):
@@ -68,18 +69,20 @@ class ParametersBuilder(object):
         builder.update_from_method(request.method)
         builder.update_from_path(request.path)
         builder.update_from_query_string(request.url.query_string)
+        builder.update_from_request_content(request)
+        builder.update_from_dictionary(request.headers)
+        return builder
 
+    def update_from_request_content(self, request):
         content_length = request.content_length
         if content_length > 0:
             content = request.rfile.read(content_length)
             if request.content_type == ContentType.URLENCODED:
-                builder.update_from_query_string_bytes(parse_qs(content))
+                self.update_from_query_string_bytes(parse_qs(content))
             elif request.content_type == ContentType.JSON:
-                builder.update_from_dictionary(json.loads(content))
+                self.update_from_dictionary(json.loads(content))
             else:
-                builder.update_from_raw_data(content)
-
-        return builder
+                self.update_from_raw_data(content)
 
     def update_from_method(self, method):
         other = self.from_method(method)
@@ -141,15 +144,16 @@ class ParametersBuilder(object):
 
     @classmethod
     def from_dictionary(cls, d):
-        append = "append" in d
+        lower_d = lower_dict_keys(d)
+        append = "append" in lower_d
         return cls(
-            action=d.get("action", None),
-            path=d.get("path", None),
-            offset=d.get("offset", None),
-            size=d.get("size", None),
-            encoding=d.get("encoding", None),
+            action=lower_d.get("action", None),
+            path=lower_d.get("path", None),
+            offset=lower_d.get("offset", None),
+            size=lower_d.get("size", None),
+            encoding=lower_d.get("encoding", None),
             append=append,
-            data=d.get("data", None)
+            data=lower_d.get("data", None)
         )
 
     def update_from_raw_data(self, raw_data):

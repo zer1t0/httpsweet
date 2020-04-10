@@ -1,5 +1,6 @@
 from urllib.parse import urlparse, parse_qs
 from .constants import Headers
+from .utils import lower_dict_keys
 
 
 class RequestInfo(object):
@@ -13,7 +14,7 @@ class RequestInfo(object):
     def __init__(self, method, url, headers, rfile):
         self.method = method
         self.url = Url(url)
-        self.headers = self._generate_lower_keys(headers)
+        self.headers = lower_dict_keys(headers)
         self.rfile = rfile
 
     @classmethod
@@ -36,13 +37,6 @@ class RequestInfo(object):
     @property
     def path(self):
         return self.url.path
-
-    @staticmethod
-    def _generate_lower_keys(d):
-        other_d = {}
-        for key, value in d.items():
-            other_d[key.lower()] = value
-        return other_d
 
 
 class Url:
