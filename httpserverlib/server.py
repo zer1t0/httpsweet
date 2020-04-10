@@ -1,9 +1,7 @@
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import logging
 import os
-import json
 from functools import partial
-from urllib.parse import parse_qs
 
 from .constants import Headers, Actions, ContentType
 from .request import RequestInfo
@@ -67,22 +65,7 @@ class FileRequestHandler(SimpleHTTPRequestHandler):
         )
 
     def parse_parameters(self, request_info):
-        builder = ParametersBuilder()
-        builder.update_from_method(request_info.method)
-        builder.update_from_path(request_info.path)
-        builder.update_from_query_string(request_info.url.query_string)
-
-        content_length = request_info.content_length
-        if content_length > 0:
-            content = request_info.rfile.read(content_length)
-            if request_info.content_type == ContentType.URLENCODED:
-                builder.update_from_query_string_bytes(parse_qs(content))
-            elif request_info.content_type == ContentType.JSON:
-                builder.update_from_dictionary(json.loads(content))
-            else:
-                builder.update_from_raw_data(content)
-
-        parameters = builder.build()
+        parameters = ParametersBuilder.from_request(request_info).build()
         parameters.path = self.translate_path(parameters.path)
 
         return parameters

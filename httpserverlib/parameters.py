@@ -1,5 +1,7 @@
 from enum import Enum
-from .constants import Actions
+import json
+from urllib.parse import parse_qs
+from .constants import Actions, ContentType
 from .encoder import EncoderFactory
 
 
@@ -58,6 +60,25 @@ class ParametersBuilder(object):
             append=bool(self.append),
             data=data
         )
+
+    @classmethod
+    def from_request(cls, request):
+        builder = cls()
+        builder.update_from_method(request.method)
+        builder.update_from_path(request.path)
+        builder.update_from_query_string(request.url.query_string)
+
+        content_length = request.content_length
+        if content_length > 0:
+            content = request.rfile.read(content_length)
+            if request.content_type == ContentType.URLENCODED:
+                builder.update_from_query_string_bytes(parse_qs(content))
+            elif request.content_type == ContentType.JSON:
+                builder.update_from_dictionary(json.loads(content))
+            else:
+                builder.update_from_raw_data(content)
+
+        return builder
 
     def update_from_method(self, method):
         other = self.from_method(method)
