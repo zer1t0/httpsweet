@@ -8,14 +8,14 @@ Download a file:
 ```
 curl 127.0.0.1:8000/test
 curl 127.0.0.1:8000/?path=test
-curl 127.0.0.1:8000/ -X POST -d 'action=download_file&path=test'
+curl 127.0.0.1:8000/ -d 'action=download&path=test'
 ```
 
 Download part of a file:
 ```
 curl '127.0.0.1:8000/test?offset=10&size=20'
 curl '127.0.0.1:8000/?offset=10&size=20&path=test'
-curl 127.0.0.1:8000/ -X POST -d 'action=download_file&offset=10&size=20&path=test'
+curl 127.0.0.1:8000/ -d 'action=download&offset=10&size=20&path=test'
 ```
 
 ### Upload file
