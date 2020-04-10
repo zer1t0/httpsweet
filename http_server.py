@@ -44,6 +44,12 @@ def parse_args():
     )
 
     parser.add_argument(
+        "--list-dir",
+        help="Allow list directories from requests",
+        action="store_true",
+    )
+
+    parser.add_argument(
         "--debug",
         required=False,
         action="store_true"
@@ -60,7 +66,12 @@ def main():
     port = args.port
     address = args.address
 
-    httpd = FileHttpServer(address, port, args.directory)
+    httpd = FileHttpServer(
+        address,
+        port,
+        args.directory,
+        args.list_dir
+    )
     print(
         "Serving HTTP on {host} port {port} "
         "(http://{host}:{port}/) ...".format(

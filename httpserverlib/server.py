@@ -12,14 +12,22 @@ logger = logging.getLogger(__name__)
 
 class FileHttpServer(ThreadingHTTPServer):
 
-    def __init__(self, address, port, directory):
+    def __init__(self, address, port, directory, allow_dir_list):
         super().__init__(
             (address, port),
-            partial(FileRequestHandler, directory=directory)
+            partial(
+                FileRequestHandler,
+                directory=directory,
+                allow_dir_list=allow_dir_list,
+            )
         )
 
 
 class FileRequestHandler(SimpleHTTPRequestHandler):
+
+    def __init__(self, *args, allow_dir_list=False, **kwargs):
+        self.allow_dir_list = allow_dir_list
+        super().__init__(*args, **kwargs)
 
     def do_GET(self):
         self._handle_request()
@@ -97,7 +105,8 @@ class ActionHandler(object):
         self.end_headers()
 
     def execute_dir_action(self):
-        if self.action == Actions.DOWNLOAD_FILE:
+        if self.allow_dir_list and \
+           self.action == Actions.DOWNLOAD_FILE:
             directory_bytes = self.list_directory()
             self.write(directory_bytes)
         else:
@@ -126,6 +135,10 @@ class ActionHandler(object):
     @property
     def data(self):
         return self.parameters.data
+
+    @property
+    def allow_dir_list(self):
+        return self.request_handler.allow_dir_list
 
     def send_error(self, code):
         self.request_handler.send_error(code)
