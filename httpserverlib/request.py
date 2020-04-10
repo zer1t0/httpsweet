@@ -3,6 +3,12 @@ from .constants import Headers
 
 
 class RequestInfo(object):
+    """Store useful information about the request such as:
+        + Method
+        + Url
+        + Headers
+        + Buffer to read the body
+    """
 
     def __init__(self, method, url, headers, rfile):
         self.method = method
@@ -40,6 +46,10 @@ class RequestInfo(object):
 
 
 class Url:
+    """Store useful information of the request url, such as:
+        + Path
+        + Query string
+    """
 
     def __init__(self, url_str):
         self._url = urlparse(url_str)
