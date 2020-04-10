@@ -55,7 +55,7 @@ def parse_args():
 
     parser.add_argument(
         "--key",
-        help="Key file to deploy an HTTPS server.",
+        help="Key file to deploy an HTTPS server. Require provide also --cert",
         type=argparse.FileType('r'),
         required=False
     )
