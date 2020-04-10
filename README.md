@@ -5,16 +5,17 @@ This is a HTTP server to allow easily download and upload files to it.
 It was created with flexibility in mind, allowing be used in many different situations, therefore in allows deploy the very same operation in many different ways. For more information see the (Rules section)[#rules].
 
 ## Examples
+This section show some examples of the common operations.
 
 ### Download file
-Download a file:
+Download a file `test`:
 ```
 curl 127.0.0.1:8000/test
 curl 127.0.0.1:8000/?path=test
 curl 127.0.0.1:8000/ -d 'action=download&path=test'
 ```
 
-Download part of a file:
+Download part of a file `test`:
 ```
 curl '127.0.0.1:8000/test?offset=10&size=20'
 curl '127.0.0.1:8000/?offset=10&size=20&path=test'
@@ -87,6 +88,6 @@ In all those fields which can specified the action parameters, the following val
 - data: str :: (Upload) The data to write into the desired file
 
 
-The more relevant parts are those in last positions of the list. That means, for instance if the Url path indicates the path `index.html` but there is a parameter `path` (in the Url or in the Body) which indicates `other_file.txt`, then `other_file.txt` will be selected as the desired path.
+The more relevant parts are those in last positions of the list. That means, for instance, if the Url path indicates the path `index.html`, but there is a parameter `path` (in the Url or in the Body) which indicates `other_file.txt`, then `other_file.txt` will be selected as the desired path.
 
 
