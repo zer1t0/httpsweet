@@ -3,7 +3,7 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-name = "http_server"
+name = "httpsweet"
 
 setuptools.setup(
     name=name,
@@ -14,7 +14,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://gitlab.com/Zer1t0/" + name,
-    scripts=["http_server"],
+    scripts=[name],
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
