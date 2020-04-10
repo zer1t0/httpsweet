@@ -68,4 +68,4 @@ class ParameterKeys(Enum):
 
     @staticmethod
     def _is(key, parameter_key):
-        return key.lower().startswith(parameter_key.lower())
+        return key.lower() == parameter_key.lower()
