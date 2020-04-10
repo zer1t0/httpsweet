@@ -2,6 +2,7 @@
 import logging
 import argparse
 import os
+import ssl
 
 from httpserverlib import FileHttpServer
 
@@ -10,10 +11,6 @@ logger = logging.getLogger(__name__)
 DEFAULT_PORT = 8000
 DEFAULT_ADDRESS = "0.0.0.0"
 DEFAULT_DIR = os.getcwd()
-
-# TODO : list directory, if enable
-# TODO : allow use certificate
-# TODO : refactor code
 
 
 def parse_args():
@@ -50,11 +47,36 @@ def parse_args():
     )
 
     parser.add_argument(
+        "--cert",
+        help="Certificate file to deploy an HTTPS server.",
+        type=argparse.FileType('r'),
+        required=False
+    )
+
+    parser.add_argument(
+        "--key",
+        help="Key file to deploy an HTTPS server.",
+        type=argparse.FileType('r'),
+        required=False
+    )
+
+    parser.add_argument(
         "--debug",
         required=False,
         action="store_true"
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if args.key and args.cert is None:
+        parser.error("--cert required with --key")
+
+    if args.cert:
+        args.cert = args.cert.name
+
+    if args.key:
+        args.key = args.key.name
+
+    return args
 
 
 def main():
@@ -65,6 +87,7 @@ def main():
 
     port = args.port
     address = args.address
+    protocol = "http"
 
     httpd = FileHttpServer(
         address,
@@ -72,10 +95,30 @@ def main():
         args.directory,
         args.dir_list
     )
+
+    if args.cert:
+        protocol = "https"
+        try:
+            httpd.socket = ssl.wrap_socket(
+                httpd.socket,
+                certfile=args.cert,
+                keyfile=args.key,
+                server_side=True,
+            )
+        except ssl.SSLError:
+            print("SSL error, do you provide the key?")
+            return
+        except OSError:
+            print("Wrong certificate password")
+            return
+
     print(
-        "Serving HTTP on {host} port {port} "
-        "(http://{host}:{port}/) ...".format(
-            host=address, port=port
+        "Serving {proto_upper} on {host} port {port} "
+        "({proto_lower}://{host}:{port}/) ...".format(
+            host=address,
+            port=port,
+            proto_upper=protocol.upper(),
+            proto_lower=protocol.lower()
         )
     )
 
