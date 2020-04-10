@@ -1,18 +1,7 @@
-from enum import Enum
 import json
 from urllib.parse import parse_qs
-from .constants import Actions, ContentType
+from .constants import Actions, ContentType, QueryStringKeys
 from .encoder import EncoderFactory
-
-
-class QueryStringKeys(Enum):
-    action = "action"
-    path = "path"
-    offset = "offset"
-    size = "size"
-    encoding = "encoding"
-    append = "append"
-    data = "data"
 
 
 class ParametersBuilder(object):
