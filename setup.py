@@ -14,6 +14,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://gitlab.com/Zer1t0/" + name,
+    scripts=["http_server"],
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
