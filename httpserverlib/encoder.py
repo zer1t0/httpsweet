@@ -8,10 +8,10 @@ class EncoderFactory(object):
 
     @classmethod
     def create(cls, encoding):
-        if "64" in encoding:
+        if "64" in str(encoding):
             return Base64Encoder()
-        else:
-            return EmptyEncoder()
+
+        return EmptyEncoder()
 
 
 class Encoder(ABC):
