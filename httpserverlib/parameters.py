@@ -5,6 +5,18 @@ from .encoder import EncoderFactory
 
 
 class ParametersBuilder(object):
+    """Helper to collect the parameters from different parts of the request and
+    build a Parameters class.
+
+    It collects the parameters from:
+    * Request Method
+    * Url path
+    * Url query string
+    * Body, which can be:
+        + raw data
+        + a query string
+        + json data
+    """
 
     def __init__(
             self,
@@ -155,6 +167,7 @@ class ParametersBuilder(object):
 
 
 class Parameters:
+    """Store the parameters received from a request."""
 
     def __init__(
             self,
