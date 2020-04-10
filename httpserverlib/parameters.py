@@ -71,6 +71,7 @@ class ParametersBuilder(object):
         builder.update_from_query_string(request.url.query_string)
         builder.update_from_request_content(request)
         builder.update_from_dictionary(request.headers)
+        builder.update_from_dictionary(request.cookies)
         return builder
 
     def update_from_request_content(self, request):

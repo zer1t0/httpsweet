@@ -1,6 +1,7 @@
 from urllib.parse import urlparse, parse_qs
 from .constants import Headers
 from .utils import lower_dict_keys
+from http import cookies
 
 
 class RequestInfo(object):
@@ -8,6 +9,7 @@ class RequestInfo(object):
         + Method
         + Url
         + Headers
+        + Cookies
         + Buffer to read the body
     """
 
@@ -16,6 +18,15 @@ class RequestInfo(object):
         self.url = Url(url)
         self.headers = lower_dict_keys(headers)
         self.rfile = rfile
+        self.cookies = self._get_cookies_from_headers()
+
+    def _get_cookies_from_headers(self):
+        c = cookies.SimpleCookie(self.headers.get("cookie", ""))
+        cookies_dict = {}
+        for key, value in c.items():
+            cookies_dict[key.lower()] = value.value
+
+        return cookies_dict
 
     @classmethod
     def from_request_handler(cls, request_handler):
