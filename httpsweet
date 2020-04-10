@@ -4,7 +4,7 @@ import argparse
 import os
 import ssl
 
-from httpserverlib import FileHttpServer
+from httpsweetlib import FileHttpServer
 
 logger = logging.getLogger(__name__)
 
