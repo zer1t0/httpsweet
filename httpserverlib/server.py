@@ -5,7 +5,7 @@ from functools import partial
 
 from .constants import Headers, Actions, ContentType
 from .request import RequestInfo
-from .parameters import ParametersBuilder
+from .parameters import Parameters
 
 logger = logging.getLogger(__name__)
 
@@ -22,19 +22,15 @@ class FileHttpServer(ThreadingHTTPServer):
 class FileRequestHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
-        logging.debug("GET")
         self._handle_request()
 
     def do_POST(self):
-        logging.debug("POST")
         self._handle_request()
 
     def do_HEAD(self):
-        logging.debug("HEAD")
         self._handle_request()
 
     def do_PUT(self):
-        logging.debug("%s PUT")
         self._handle_request()
 
     def _handle_request(self):
@@ -44,9 +40,16 @@ class FileRequestHandler(SimpleHTTPRequestHandler):
             self.log_date_time_string(),
             self.requestline
         )
-        request_info = self.parse_request_info()
+        request_info = RequestInfo.from_request_handler(self)
         parameters = self.parse_parameters(request_info)
+        self.execute(parameters)
 
+    def parse_parameters(self, request_info):
+        parameters = Parameters.from_request(request_info)
+        parameters.path = self.translate_path(parameters.path)
+        return parameters
+
+    def execute(self, parameters):
         try:
             self.execute_action(parameters)
         except FileNotFoundError as ex:
@@ -56,46 +59,37 @@ class FileRequestHandler(SimpleHTTPRequestHandler):
             logger.debug("Directory requested: %s", ex)
             self.send_error(404)
 
-    def parse_request_info(self):
-        return RequestInfo(
-            method=self.command,
-            url=self.path,
-            headers=self.headers,
-            rfile=self.rfile
-        )
-
-    def parse_parameters(self, request_info):
-        parameters = ParametersBuilder.from_request(request_info).build()
-        parameters.path = self.translate_path(parameters.path)
-
-        return parameters
-
     def execute_action(self, parameters):
-        print(repr(parameters))
-        if parameters.action == Actions.DOWNLOAD_FILE:
-            self.download_file(
-                parameters.path,
-                parameters.offset,
-                parameters.size,
-                parameters.encoder
-            )
-        elif parameters.action == Actions.UPLOAD_FILE:
-            self.upload_file(
-                parameters.path,
-                parameters.data,
-                parameters.append,
-                parameters.encoder
-            )
+        if os.path.isdir(parameters.path):
+            self.execute_dir_action(parameters)
+        else:
+            self.execute_file_action(parameters)
 
-    def download_file(self, path, offset, size, encoder):
-        data = self.read_file(path, offset, size, encoder)
+    def execute_file_action(self, parameters):
+        if parameters.action == Actions.DOWNLOAD_FILE:
+            self.download_file(parameters)
+        elif parameters.action == Actions.UPLOAD_FILE:
+            self.upload_file(parameters)
+
+    def download_file(self, parameters):
+        data = self.read_file(
+            parameters.path,
+            parameters.offset,
+            parameters.size,
+            parameters.encoder
+        )
         self.send_response(200)
         self.send_header(Headers.CONTENT_TYPE, ContentType.OCTET_STREAM)
         self.end_headers()
         self.wfile.write(data)
 
-    def upload_file(self, path, data, append, encoder):
-        self.write_file_and_dirs(path, data, append, encoder)
+    def upload_file(self, parameters):
+        self.write_file_and_dirs(
+            parameters.path,
+            parameters.data,
+            parameters.append,
+            parameters.encoder
+        )
         self.send_response(200)
         self.end_headers()
 
@@ -120,6 +114,9 @@ class FileRequestHandler(SimpleHTTPRequestHandler):
         with open(path, mode) as f:
             f.write(encoder.decode(data))
 
-
-
-
+    def execute_dir_action(self, parameters):
+        if parameters.action == Actions.DOWNLOAD_FILE:
+            directory_bytes = self.list_directory(parameters.path)
+            self.wfile.write(directory_bytes.getvalue())
+        else:
+            raise IsADirectoryError(parameters.path)

@@ -10,6 +10,15 @@ class RequestInfo(object):
         self.headers = self._generate_lower_keys(headers)
         self.rfile = rfile
 
+    @classmethod
+    def from_request_handler(cls, request_handler):
+        return cls(
+            method=request_handler.command,
+            url=request_handler.path,
+            headers=request_handler.headers,
+            rfile=request_handler.rfile
+        )
+
     @property
     def content_type(self):
         return self.headers.get(Headers.CONTENT_TYPE.lower(), "")

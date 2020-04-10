@@ -185,5 +185,9 @@ class Parameters:
         self.append = append
         self.data = data
 
+    @classmethod
+    def from_request(cls, request):
+        return ParametersBuilder.from_request(request).build()
+
     def __repr__(self):
         return repr(self.__dict__)
