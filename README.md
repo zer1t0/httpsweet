@@ -1,10 +1,18 @@
-# http_server
+# httpsweet
 
-This is a HTTP server to allow easily download and upload files to it.
+An HTTP server to easily download and upload files.
 
-It was created with flexibility in mind, allowing be used in many different situations, therefore in allows deploy the very same operation in many different ways. For more information see the (Rules section)[#rules].
+It was created with flexibility in mind, allowing be used in many different situations, therefore in allows deploy the very same operation in many different ways. For more information see the [Specification section](#specification).
 
 **Note**: This software is not intended for production enviroment, but for test purposes, therefore be careful with its use, since it don't provide any security mechanism.
+
+## Installation
+
+```shell
+git clone https://gitlab.com/Zer1t0/httpsweet
+cd httpsweet/
+python3 setup.py install # required only in case system installation
+```
 
 ## Examples
 This section show some examples of the common operations.
@@ -63,7 +71,7 @@ cat key.pem >> cert.pem # generate cert with the private key
 By default, directory listing is disabled, in case you want to enable it, you must provide the flag `--dir-list`.
 
 
-## Rules
+## Specification
 The server perform 2 basic actions: **download** and **upload** file.
 
 ### Request Fields
