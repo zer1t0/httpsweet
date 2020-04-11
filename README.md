@@ -19,14 +19,14 @@ This section show some examples of the common operations.
 
 ### Download file
 Download a file `test`:
-```
+```shell
 curl 127.0.0.1:8000/test
 curl 127.0.0.1:8000/?path=test
 curl 127.0.0.1:8000/ -d 'action=download&path=test'
 ```
 
 Download part of a file `test`:
-```
+```shell
 curl '127.0.0.1:8000/test?offset=10&size=20'
 curl '127.0.0.1:8000/?offset=10&size=20&path=test'
 curl 127.0.0.1:8000/ -d 'action=download&offset=10&size=20&path=test'
@@ -35,20 +35,20 @@ curl 127.0.0.1:8000/ -d 'action=download&offset=10&size=20&path=test'
 ### Upload file
 
 Upload a file named `test_up`:
-```
+```shell
 curl 127.0.0.1:8000/test_up -H "Content-Type: application/octet-stream" --data 'thedata' 
 curl localhost:8000/test_up -H "Content-Type: application/octet-stream" --data-binary "@/etc/hosts"
 curl '127.0.0.1:8000/test_up?action=upload_file&data=thedata'
 ```
 
 Upload a file appending:
-```
+```shell
 curl 127.0.0.1:8000/test_app?append=t -H "Content-type: application/octet-stream" --data "thedata"
 curl '127.0.0.1:8000/test_app?action=upload_file&data=thedata&append=t'
 ```
 
 Upload base64 encoded:
-```
+```shell
 curl 127.0.0.1:8000/test_64?encoding=64 -H 'Content-type: application/octet-stream' --data 'dGhlZGF0YQo=' 
 curl '127.0.0.1:8000/?action=upload_file&path=test_64&data=dGhlZGF0YQo&encoding=64'
 ```
@@ -60,7 +60,7 @@ The server also support the HTTPS protocol, for which you should provide a certi
 
 To generate an auto-self certificate you could use the following command:
 
-```
+```shell
 openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365
 cat key.pem >> cert.pem # generate cert with the private key
 ```
