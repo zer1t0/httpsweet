@@ -52,7 +52,6 @@ class ParametersBuilder(object):
         else:
             data = self.data
 
-        print("Append = {}", self.append)
         return Parameters(
             action=self.action,
             path=self.path,
