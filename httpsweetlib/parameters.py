@@ -1,4 +1,3 @@
-import json
 from urllib.parse import parse_qs
 from .constants import Action, ContentType, ParameterKeys
 from .encoder import EncoderFactory
@@ -89,8 +88,6 @@ class ParametersBuilder(object):
             content = request.rfile.read(content_length)
             if request.content_type == ContentType.URLENCODED:
                 self.update_from_query_string_bytes(parse_qs(content))
-            elif request.content_type == ContentType.JSON:
-                self.update_from_dictionary(json.loads(content))
             else:
                 self.update_from_raw_data(content)
 
