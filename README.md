@@ -8,6 +8,12 @@ It was created with flexibility in mind, allowing be used in many different situ
 
 ## Installation
 
+From python packages:
+```shell
+pip3 install httpsweet
+```
+
+From repository:
 ```shell
 git clone https://gitlab.com/Zer1t0/httpsweet
 cd httpsweet/
