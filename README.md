@@ -4,6 +4,8 @@ This is a HTTP server to allow easily download and upload files to it.
 
 It was created with flexibility in mind, allowing be used in many different situations, therefore in allows deploy the very same operation in many different ways. For more information see the (Rules section)[#rules].
 
+**Note**: This software is not intended for production enviroment, but for test purposes, therefore be careful with its use, since it don't provide any security mechanism.
+
 ## Examples
 This section show some examples of the common operations.
 
@@ -26,21 +28,21 @@ curl 127.0.0.1:8000/ -d 'action=download&offset=10&size=20&path=test'
 
 Upload a file named `test_up`:
 ```
-curl 127.0.0.1:8000/test_up -X POST --data 'thedata' -H 'Content-type: application/octet-stream'
+curl 127.0.0.1:8000/test_up -H "Content-Type: application/octet-stream" --data 'thedata' 
+curl localhost:8000/test_up -H "Content-Type: application/octet-stream" --data-binary "@/etc/hosts"
 curl '127.0.0.1:8000/test_up?action=upload_file&data=thedata'
 ```
 
 Upload a file appending:
 ```
-curl 127.0.0.1:8000/test_app?append=t -X POST --data 'thedata' -H 'Content-type: application/octet-stream'
+curl 127.0.0.1:8000/test_app?append=t -H "Content-type: application/octet-stream" --data "thedata"
 curl '127.0.0.1:8000/test_app?action=upload_file&data=thedata&append=t'
 ```
 
 Upload base64 encoded:
 ```
-curl 127.0.0.1:8000/test?encoding=64 -X POST --data 'dGhlZGF0YQo=' -H 'Content-type: application/octet-stream'
-
-curl '127.0.0.1:8000/?action=upload_file&path=test&data=dGhlZGF0YQo&encoding=64'
+curl 127.0.0.1:8000/test_64?encoding=64 -H 'Content-type: application/octet-stream' --data 'dGhlZGF0YQo=' 
+curl '127.0.0.1:8000/?action=upload_file&path=test_64&data=dGhlZGF0YQo&encoding=64'
 ```
 
 
@@ -62,33 +64,43 @@ By default, directory listing is disabled, in case you want to enable it, you mu
 
 
 ## Rules
+The server perform 2 basic actions: **download** and **upload** file.
 
-The server perform 2 basic actions: Download and Upload file.
-
+### Request Fields
 In order to determine the action required in each request, the server examines the following parts of the request:
 
-- Method
-  + POST | PUT :: Upload
-  + Rest of methods :: Download
-- Url path :: Indicates the path of the desired file
-- Url parameters :: Indicates the action parameters
-- Body, which could be:
-  - Raw data :: Indicates the content of the file
-  - Url encoded parameters :: Indicates the action parameters
-  - Json data :: Indicates the action parameters
-- Headers :: Indicates the action parameters
-- Cookies :: Indicates the action parameters. Since `path` key has a special meaning in cookies, it is not possible to use that parameter in these fields.
-
-In all those fields which can specified the action parameters, the following values can be provided:
-- action: str :: Determines the action
-- path: str :: Indicates the path of the desired file
-- offset: int :: (Download) Indicates the starting point for reading a file
-- size: int :: (Download) Indicates the number of bytes read
-- append: flag :: (Upload) Indicates if the data should be appended to the desired file
-- encoding: str :: Indicates the desired encoder use in the actions, actually only base64 is supported (or not encoder)
-- data: str :: (Upload) The data to write into the desired file
-
+- **Method**
+  + POST | PUT :: Indicate upload
+  + Rest of methods :: Indicate download
+- **Url**
+  + Url path :: Indicates the path of the desired file 
+  + Url parameters :: Indicates the action parameters
+- **Body**, which could be:
+  + Raw data :: Indicates the content of the file
+  + Url encoded parameters :: Indicates the action parameters
+  + Json data :: Indicates the action parameters
+- **Headers** :: Indicates the action parameters
+- **Cookies** :: Indicates the action parameters. Since `path` key has a special meaning in cookies, it is not possible to use that parameter in these fields.
 
 The more relevant parts are those in last positions of the list. That means, for instance, if the Url path indicates the path `index.html`, but there is a parameter `path` (in the Url or in the Body) which indicates `other_file.txt`, then `other_file.txt` will be selected as the desired path.
+
+### Key-Value fields (Url, Body, Headers, Cookies)
+In all those fields which can specified the action parameters, the following values can be provided:
+- **action**: str :: Determines the action
+- **path**: str :: Indicates the path of the desired file
+- **offset**: int :: (Download) Indicates the starting point for reading a file
+- **size**: int :: (Download) Indicates the number of bytes read
+- **append**: flag :: (Upload) Indicates if the data should be appended to the desired file
+- **encoding**: str :: Indicates the desired encoder use in the actions, actually only base64 is supported (or not encoder)
+- **data**: str :: (Upload) The data to write into the desired file
+
+### Matching keywords
+
+The key of the key value fields are case-insensitive, then, for instance, is the same `offset` that `Offset` or `OFFSET`.
+
+
+In the parameter `action`, any value starting by `d` (such as `d`, `down`, `download`) will match as `download` action and any value starting by `u` (such as `u`, `up`, `upload`) will match as `upload` action.
+
+
 
 
