@@ -4,6 +4,10 @@ from .constants import Action, ContentType, ParameterKeys
 from .encoder import EncoderFactory
 
 
+class ParametersError(ValueError):
+    """Raise when there is an error parsing the parameters"""
+
+
 class ParametersBuilder(object):
     """Helper to collect the parameters from different parts of the request and
     build a Parameters class.
@@ -37,6 +41,12 @@ class ParametersBuilder(object):
         self.data = data
 
     def build(self):
+        try:
+            return self._try_build()
+        except ValueError as ex:
+            raise ParametersError(str(ex))
+
+    def _try_build(self):
         if self.offset is None:
             offset = 0
         else:

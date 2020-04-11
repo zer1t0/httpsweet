@@ -1,10 +1,11 @@
 import os
 from http.server import SimpleHTTPRequestHandler
+from http import HTTPStatus
 import logging
 
 from .constants import Headers, Action, ContentType
 from .request import RequestInfo
-from .parameters import Parameters
+from .parameters import Parameters, ParametersError
 
 logger = logging.getLogger(__name__)
 
@@ -40,15 +41,20 @@ class FileRequestHandler(SimpleHTTPRequestHandler):
             self.log_date_time_string(),
             self.requestline
         )
-        request_info = RequestInfo.from_request_handler(self)
-        parameters = Parameters.from_request(request_info)
+        try:
+            request_info = RequestInfo.from_request_handler(self)
+            parameters = Parameters.from_request(request_info)
 
-        logger.debug("Received parameters: %s", repr(parameters))
-        ActionHandler(
-            path=self.translate_path(parameters.path),
-            parameters=parameters,
-            request_handler=self
-        ).execute()
+            logger.debug("Received parameters: %s", repr(parameters))
+            ActionHandler(
+                path=self.translate_path(parameters.path),
+                parameters=parameters,
+                request_handler=self
+            ).execute()
+
+        except ParametersError as ex:
+            logger.debug("Error in parameters: %s", ex)
+            self.send_error(HTTPStatus.BAD_REQUEST)
 
 
 class ActionHandler(object):
@@ -64,10 +70,10 @@ class ActionHandler(object):
             self.execute_action()
         except FileNotFoundError as ex:
             logger.debug("File not found: %s", ex)
-            self.send_error(404)
+            self.send_error(HTTPStatus.NOT_FOUND)
         except IsADirectoryError as ex:
             logger.debug("Directory requested: %s", ex)
-            self.send_error(404)
+            self.send_error(HTTPStatus.BAD_REQUEST)
 
     def execute_action(self):
         if os.path.isdir(self.path):
