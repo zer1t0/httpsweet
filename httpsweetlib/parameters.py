@@ -19,6 +19,8 @@ class ParametersBuilder(object):
         + raw data
         + a query string
         + json data
+    * Headers
+    * Cookies
     """
 
     def __init__(
