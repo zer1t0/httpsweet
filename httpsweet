@@ -15,7 +15,9 @@ DEFAULT_SERVER_HEADER = "HTTPServer"
 
 
 def parse_args():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="An HTTP server for upload and download files"
+    )
     parser.add_argument(
         "port",
         default=DEFAULT_PORT,
@@ -74,7 +76,8 @@ def parse_args():
     parser.add_argument(
         "--debug",
         required=False,
-        action="store_true"
+        action="store_true",
+        help="Print debug messages"
     )
     args = parser.parse_args()
 

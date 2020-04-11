@@ -11,7 +11,7 @@ It was created with flexibility in mind, allowing be used in many different situ
 ```shell
 git clone https://gitlab.com/Zer1t0/httpsweet
 cd httpsweet/
-python3 setup.py install # required only in case system installation
+python3 setup.py install # required only in case of system installation
 ```
 
 ## Examples
